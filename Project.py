@@ -63,7 +63,7 @@ def openvertrekschema(station):
     response = requests.get(url, auth=(username, password))
     vertrekXML = xmltodict.parse(response.text)
 
-    # Elke trein + plus informatie van die trein komt 30 pixels onder de vorige te staan.
+    # Elke trein + plus informatie van die trein komt 20 pixels onder de vorige te staan, begint bij 30 pixels. zie line 116 voor meer informatie.
     var_y = 30
 
     # Er wordt gekeken of ActueleVertrekTijden in de xmltodict staat, die zal er bij elk station ALTIJD staan, behalve als het station niet bestaat.
@@ -73,22 +73,36 @@ def openvertrekschema(station):
 
         # Doormiddel van een for loop gaat hij elke trein af in het lijstje en laat dat in het schema zien.
         for vertrek in vertrekXML['ActueleVertrekTijden']['VertrekkendeTrein']:
+
+            # Als RouteTekst er in voorkomt dan gaat de trein dus niet direct naar 1 station, maar via meerdere stations. Die stations worden dan geprint.
             if 'RouteTekst' in vertrek:
                 Label(root2, text=vertrek['VertrekTijd'][11:16], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=5, y=var_y)
+
+                # Programma probeert de Vertraging te printen, als er geen vertraging is ontstaat er een error die hij vervolgens negeerd.
                 try:
                     Label(root2, text=vertrek['VertrekVertragingTekst'], font=('Helvetica', 12, 'bold'), anchor='w', foreground='red', background='white').place(x=110, y=var_y)
                 except:
                     None
+
+                #Hier worden alle standaard waarden geprint
                 Label(root2, text=vertrek['EindBestemming'], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=220, y=var_y)
                 Label(root2, text=vertrek['TreinSoort'], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=460, y=var_y)
                 Label(root2, text=vertrek['RouteTekst'], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=550, y=var_y)
+
+                # Hier wordt gekeken of er een wijziging in het vertrekspoor, zo ja dan wordt het spoor in het rood geprint, zo niet dan in het zwart.
                 if vertrek['VertrekSpoor']['@wijziging'] == 'true':
                     Label(root2, text=vertrek['VertrekSpoor']['#text'], font=('Helvetica', 12), anchor='w',foreground='red', background='white').place(x=400, y=var_y)
                 else:
                     Label(root2, text=vertrek['VertrekSpoor']['#text'], font=('Helvetica', 12), anchor='w',foreground='black', background='white').place(x=400, y=var_y)
+
+                # De y-as positie bij elke trein schuift na elke loop 20 pixels naar benenden zodat het netjes onder elkaar geprint wordt.
                 var_y += 20
+
+            #Staat RouteTekst er niet in is het dus een directe trein en zal routetekst ook niet geprint worden.
             elif 'RouteTekst' not in vertrek:
                 Label(root2, text=vertrek['VertrekTijd'][11:16], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=5, y=var_y)
+
+                # Net als bij line 82 wordt hier gekeken naar vertraging.
                 try:
                     Label(root2, text=vertrek['VertrekVertragingTekst'], font=('Helvetica', 12, 'bold'), anchor='w', foreground='red', background='white').place(x=110, y=var_y)
                 except:
@@ -97,6 +111,7 @@ def openvertrekschema(station):
                 Label(root2, text=vertrek['VertrekSpoor']['#text'], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=400, y=var_y)
                 Label(root2, text=vertrek['TreinSoort'], font=('Helvetica', 12), anchor='w', foreground='black', background='white').place(x=460, y=var_y)
                 var_y += 20
+
     # Als het station niet bestaat ontstaat een popup met een foutmelding, zodra de gebruiker deze wegklikt kan er opnieuw gezocht worden naar een station.
     else:
         popup_bericht()
